@@ -1,12 +1,22 @@
 {
-  "name": "Idiurus",
+  "name": "idiurus",
   "version": "1.0.0",
-  "main": "index.js",
-  "type": "module",
   "repository": "git@github.com:danieldeng2/idiurus.git",
   "author": "danieldeng2 <danieldeng223@gmail.com>",
   "license": "MIT",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc -w",
+    "lint": "eslint -c .eslintrc --ext .ts ./src",
+    "start-electron": "yarn run build && electron ./dist/main.js",
+    "start": "yarn run build && node ./dist/index.js"
+  },
   "dependencies": {
+    "@mediapipe/hands": "^0.4.1635986972",
     "robotjs": "^0.6.0"
+  },
+  "devDependencies": {
+    "electron": "^17.0.0",
+    "typescript": "^4.5.5"
   }
 }

@@ -1,5 +1,4 @@
-import robotjs from 'robotjs';
-const { getMousePos, moveMouse, mouseClick } = robotjs;
+import { getMousePos, moveMouse, mouseClick } from 'robotjs';
 
 //Get the mouse position, retuns an object with x and y. 
 var mouse=getMousePos();
