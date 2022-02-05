@@ -1,12 +1,18 @@
 import cv2
 import mediapipe as mp
 import math
-
+import enum
 from sys import platform
 from numpy import average
 from pynput.mouse import Button, Controller
 from screeninfo import get_monitors
 import pyautogui
+
+class Action(enum.Enum):
+    resting = 1
+    leftclick = 2
+    scroll = 3
+currentState = Action.resting
 
 # Screen size calculation
 monitor = get_monitors()[0]
@@ -141,9 +147,14 @@ with mp_hands.Hands(model_complexity=0, min_detection_confidence=0.5, min_tracki
                 ring_thumb_distance = math.sqrt((ring_x - thumb_x) ** 2 + (ring_y - thumb_y) ** 2)
 
                 if index_thumb_distance < 0.1:
-                    mouse.press(Button.left)
+                    if currentState == Action.resting:
+                        mouse.press(Button.left)
+                        currentState = Action.leftclick
                 if index_thumb_distance > 0.1:
-                    mouse.release(Button.left)
+                    if currentState == Action.leftclick:
+                        mouse.release(Button.left)
+                        currentState = Action.resting
+
                 # leftMousePressed = index_thumb_distance < 0.1
 
                 # if ring_thumb_distance < 0.1 and not rightMousePressed:
@@ -155,8 +166,21 @@ with mp_hands.Hands(model_complexity=0, min_detection_confidence=0.5, min_tracki
                 # if thumb_middle_distance < 0.2 and not scrolling:
                 #     scrollingState = (thumb_x, thumb_y)
                 # scrolling = thumb_middle_distance < 0.2
+                if thumb_middle_distance < 0.2:
+                    if currentState == Action.resting:
+                        print("STARTED SCROLLING")
+                        currentState = Action.scroll
+                        scrollingState = (thumb_x, thumb_y)
+                else:
+                    if currentState == Action.scroll:
+                        print("STOPPED SCROLLING")
+                        currentState = Action.resting
 
-                if scrolling:
+                if currentState == Action.scroll:
+                    print("CURRENTLY SCROLLING")
+                    print(thumb_y)
+                    print(scrollingState[1])
+                    print("DISTANCE: ", thumb_y - scrollingState[1])
                     if thumb_y - scrollingState[1] > 0.2:
                         # scroll up
                         mouse.scroll(0, -1)
@@ -164,7 +188,9 @@ with mp_hands.Hands(model_complexity=0, min_detection_confidence=0.5, min_tracki
                         # scroll down
                         mouse.scroll(0, 1)
                 else:
+                    print("CURRENTLY NOT SCROLLING")
                     mouse.position = (pointer_x, pointer_y)
+
                 mp_drawing.draw_landmarks(
                     image,
                     hand_landmarks,
