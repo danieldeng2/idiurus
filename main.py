@@ -1,5 +1,7 @@
 import cv2
 import mediapipe as mp
+from sys import platform
+
 mp_drawing = mp.solutions.drawing_utils
 mp_drawing_styles = mp.solutions.drawing_styles
 mp_hands = mp.solutions.hands
@@ -46,7 +48,10 @@ with mp_hands.Hands(
         hand_world_landmarks, mp_hands.HAND_CONNECTIONS, azimuth=5)
 
 # For webcam input:
-cap = cv2.VideoCapture(-1)
+
+device_index = 0 if platform == "darwin" else -1
+cap = cv2.VideoCapture(device_index)
+
 with mp_hands.Hands(
     model_complexity=0,
     min_detection_confidence=0.5,
