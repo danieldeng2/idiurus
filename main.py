@@ -1,7 +1,7 @@
 import cv2
 import mediapipe as mp
 import math
-
+import enum
 from sys import platform
 from numpy import average
 from pynput.mouse import Button, Controller
@@ -23,6 +23,12 @@ def weighted_input(inputs, input):
         weights += weight
 
     return total / weights
+
+class Action(enum.Enum):
+    resting = 1
+    leftclick = 2
+    scroll = 3
+currentState = Action.resting
 
 # Screen size calculation
 monitor = get_monitors()[0]
@@ -147,23 +153,38 @@ with mp_hands.Hands(model_complexity=0, min_detection_confidence=0.5, min_tracki
                 thumb_middle_distance = math.sqrt((middle_x - thumb_x) ** 2 + (middle_y - thumb_y) ** 2)
                 ring_thumb_distance = math.sqrt((ring_x - thumb_x) ** 2 + (ring_y - thumb_y) ** 2)
 
-                if index_thumb_distance < 0.1 and not leftMousePressed:
+                if index_thumb_distance < 0.1:
                     mouse.press(Button.left)
-                if index_thumb_distance > 0.1 and leftMousePressed:
-                    mouse.release(Button.left)
-                leftMousePressed = index_thumb_distance < 0.1
+                    currentState = Action.leftclick
+                if index_thumb_distance > 0.1:
+                    if currentState == currentState.leftclick:
+                        mouse.release(Button.left)
+                        currentState = Action.resting
 
-                # if ring_thumb_distance < 0.1 and not rightMousePressed:
-                #     mouse.press(Button.right)
-                # if ring_thumb_distance > 0.1 and rightMousePressed:
+                # leftMousePressed = index_thumb_distance < 0.1
+                # if ring_thumb_distance > 0.1 and rightMousePressed
+                #
+                #                 # if ring_thumb_distance < 0.1 and not rightMousePressed:
+                #                 #     mouse.press(Button.right):
                 #     mouse.release(Button.right)
                 # rightMousePressed = ring_thumb_distance < 0.1
 
-                if thumb_middle_distance < 0.2 and not scrolling:
-                    scrollingState = (thumb_x, thumb_y)
-                scrolling = thumb_middle_distance < 0.2
+                # if thumb_middle_distance < 0.2 and not scrolling:
+                #     scrollingState = (thumb_x, thumb_y)
+                # scrolling = thumb_middle_distance < 0.2
+                if thumb_middle_distance < 0.2:
+                    if currentState == Action.resting:
+                        currentState = Action.scroll
+                        scrollingState = (thumb_x, thumb_y)
+                else:
+                    if currentState == Action.scroll:
+                        currentState = Action.resting
 
-                if scrolling:
+                if currentState == Action.scroll:
+                    print("CURRENTLY SCROLLING")
+                    print(thumb_y)
+                    print(scrollingState[1])
+                    print("DISTANCE: ", thumb_y - scrollingState[1])
                     if thumb_y - scrollingState[1] > 0.2:
                         # scroll up
                         mouse.scroll(0, -1)
@@ -171,7 +192,9 @@ with mp_hands.Hands(model_complexity=0, min_detection_confidence=0.5, min_tracki
                         # scroll down
                         mouse.scroll(0, 1)
                 else:
+                    print("CURRENTLY NOT SCROLLING")
                     mouse.position = (pointer_x, pointer_y)
+
                 mp_drawing.draw_landmarks(
                     image,
                     hand_landmarks,
