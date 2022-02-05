@@ -55,8 +55,8 @@ with mp_hands.Hands(
 
 # For webcam input:
 
-device_index = 0 if platform == "darwin" else -1
-cap = cv2.VideoCapture(0)
+device_index = -1 if platform == "linux" else 0
+cap = cv2.VideoCapture(device_index)
 
 with mp_hands.Hands(
     model_complexity=0,
@@ -81,15 +81,17 @@ with mp_hands.Hands(
     if results.multi_hand_landmarks:
       for hand_landmarks in results.multi_hand_landmarks:
         finger_tip = hand_landmarks.landmark[mp_hands.HandLandmark.INDEX_FINGER_TIP]
-        x_coordinates = 2736 - finger_tip.x * 2736
-        y_coordinates = finger_tip.y * 1872
         thumb_tip = hand_landmarks.landmark[mp_hands.HandLandmark.THUMB_TIP]
+
+        x_coordinates = 2736 - (finger_tip.x + thumb_tip.x) / 2 * 2736
+        y_coordinates = (finger_tip.y + thumb_tip.y) / 2 * 1872
         thumb_x_coordinates = 2736 - thumb_tip.x * 2736
         thumb_y_coordinates = thumb_tip.y * 1872
 
 
         mouse.position = (x_coordinates, y_coordinates)
         distance_between_fingers = math.sqrt((x_coordinates-thumb_x_coordinates)**2 + (y_coordinates-thumb_y_coordinates)**2)
+        
         print("DISTANCE BETWEEN FINGERS", distance_between_fingers)
         if distance_between_fingers < 100:
             mousePressed=True
