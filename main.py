@@ -11,7 +11,7 @@ screen_x = monitor.width
 screen_y = monitor.height
 
 mouse = Controller()
-mousePressed = True
+mousePressed = False
 mp_drawing = mp.solutions.drawing_utils
 mp_drawing_styles = mp.solutions.drawing_styles
 mp_hands = mp.solutions.hands
@@ -90,11 +90,15 @@ with mp_hands.Hands(model_complexity=0, min_detection_confidence=0.5, min_tracki
 
                 print("DISTANCE BETWEEN FINGERS", distance_between_fingers)
                 if distance_between_fingers < 25:
-                    mousePressed = True
-                    mouse.press(Button.left)
+                    if not mousePressed:
+                        mousePressed = True
+                        mouse.press(Button.left)
+                        print("MOUSE CLICK DETECTED")
                 else:
-                    mousePressed = False
-                    mouse.release(Button.left)
+                    if mousePressed:
+                        mousePressed = False
+                        mouse.release(Button.left)
+                        print("MOUSE RELEASED")
 
                 mp_drawing.draw_landmarks(
                     image,
