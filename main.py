@@ -18,7 +18,6 @@ mousePressed = False
 scrolling = False
 taking_screenshot = False
 scrollingState = (0,0)
-iteration = 0
 mp_drawing = mp.solutions.drawing_utils
 mp_drawing_styles = mp.solutions.drawing_styles
 mp_hands = mp.solutions.hands
@@ -147,10 +146,7 @@ with mp_hands.Hands(model_complexity=0, min_detection_confidence=0.5, min_tracki
                         # scroll down
                         mouse.scroll(0, 1)
                 else:
-                    print(iteration, "Updating mouse position")
-                    iteration += 1
                     mouse.position = (pointer_x, pointer_y)
-                print("*************Normal Iteration")
                 mp_drawing.draw_landmarks(
                     image,
                     hand_landmarks,
