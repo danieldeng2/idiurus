@@ -1,19 +1,12 @@
 {
-  "name": "idiurus",
+  "name": "Idiurus",
   "version": "1.0.0",
-  "description": "",
   "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+ssh://git@github.com/danieldeng2/idiurus.git"
-  },
-  "author": "",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/danieldeng2/idiurus/issues"
-  },
-  "homepage": "https://github.com/danieldeng2/idiurus#readme"
+  "type": "module",
+  "repository": "git@github.com:danieldeng2/idiurus.git",
+  "author": "danieldeng2 <danieldeng223@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "robotjs": "^0.6.0"
+  }
 }
