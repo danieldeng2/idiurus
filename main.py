@@ -1,9 +1,11 @@
 import cv2
 import mediapipe as mp
+import math
 from sys import platform
 from pynput.mouse import Button, Controller
 
 mouse = Controller()
+mousePressed = True
 mp_drawing = mp.solutions.drawing_utils
 mp_drawing_styles = mp.solutions.drawing_styles
 mp_hands = mp.solutions.hands
@@ -54,7 +56,7 @@ with mp_hands.Hands(
 # For webcam input:
 
 device_index = 0 if platform == "darwin" else -1
-cap = cv2.VideoCapture(device_index)
+cap = cv2.VideoCapture(0)
 
 with mp_hands.Hands(
     model_complexity=0,
@@ -81,14 +83,23 @@ with mp_hands.Hands(
         finger_tip = hand_landmarks.landmark[mp_hands.HandLandmark.INDEX_FINGER_TIP]
         x_coordinates = 2736 - finger_tip.x * 2736
         y_coordinates = finger_tip.y * 1872
+        thumb_tip = hand_landmarks.landmark[mp_hands.HandLandmark.THUMB_TIP]
+        thumb_x_coordinates = 2736 - thumb_tip.x * 2736
+        thumb_y_coordinates = thumb_tip.y * 1872
+
 
         mouse.position = (x_coordinates, y_coordinates)
-        print('hand_landmarks:', hand_landmarks)
-        print(
-            f'Index finger tip coordinates: (',
-            f'{x_coordinates}, '
-            f'{y_coordinates})'
-        )
+        distance_between_fingers = math.sqrt((x_coordinates-thumb_x_coordinates)**2 + (y_coordinates-thumb_y_coordinates)**2)
+        print("DISTANCE BETWEEN FINGERS", distance_between_fingers)
+        if distance_between_fingers < 100:
+            mousePressed=True
+            mouse.press(Button.left)
+            print("MOUSE CLICK DETECTED")
+        else:
+            mousePressed = False
+            mouse.release(Button.left)
+            print("MOUSE CLICK DETECTED")
+
         mp_drawing.draw_landmarks(
             image,
             hand_landmarks,
