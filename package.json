@@ -1,0 +1,19 @@
+{
+  "name": "idiurus",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/danieldeng2/idiurus.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/danieldeng2/idiurus/issues"
+  },
+  "homepage": "https://github.com/danieldeng2/idiurus#readme"
+}
