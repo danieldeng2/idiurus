@@ -14,7 +14,8 @@ screen_x = monitor.width
 screen_y = monitor.height
 
 mouse = Controller()
-mousePressed = False
+leftMousePressed = False
+rightMousePressed = False
 scrolling = False
 taking_screenshot = False
 scrollingState = (0,0)
@@ -104,16 +105,18 @@ with mp_hands.Hands(model_complexity=0, min_detection_confidence=0.5, min_tracki
                 index_tip = hand_landmarks.landmark[mp_hands.HandLandmark.INDEX_FINGER_TIP]
                 thumb_tip = hand_landmarks.landmark[mp_hands.HandLandmark.THUMB_TIP]
                 middle_finger_tip = hand_landmarks.landmark[mp_hands.HandLandmark.MIDDLE_FINGER_TIP]
-
+                ring_finger_tip = hand_landmarks.landmark[mp_hands.HandLandmark.RING_FINGER_TIP]
                 
                 
                 index_x = 1 - index_tip.x
                 thumb_x = 1 - thumb_tip.x
                 middle_x = 1 - middle_finger_tip.x
+                ring_x = 1 - ring_finger_tip.x
 
                 index_y = index_tip.y
                 thumb_y = thumb_tip.y
                 middle_y = middle_finger_tip.y
+                ring_y = 1 - ring_finger_tip.y
 
                 pointer_xs.append((index_x + thumb_x) / 2 * screen_x)
                 pointer_ys.append((index_y + thumb_y) / 2 * screen_y)
@@ -127,12 +130,19 @@ with mp_hands.Hands(model_complexity=0, min_detection_confidence=0.5, min_tracki
                 
                 index_thumb_distance = math.sqrt((index_x - thumb_x) ** 2 + (index_y - thumb_y) ** 2)
                 thumb_middle_distance = math.sqrt((middle_x - thumb_x) ** 2 + (middle_y - thumb_y) ** 2)
+                ring_thumb_distance = math.sqrt((ring_x - thumb_x) ** 2 + (ring_y - thumb_y) ** 2)
 
-                if index_thumb_distance < 0.1 and not mousePressed:
+                if index_thumb_distance < 0.1 and not leftMousePressed:
                     mouse.press(Button.left)
-                if index_thumb_distance > 0.1 and mousePressed:
+                if index_thumb_distance > 0.1 and leftMousePressed:
                     mouse.release(Button.left)
-                mousePressed = index_thumb_distance < 0.1
+                leftMousePressed = index_thumb_distance < 0.1
+
+                if ring_thumb_distance < 0.1 and not rightMousePressed:
+                    mouse.press(Button.right)
+                if ring_thumb_distance > 0.1 and rightMousePressed:
+                    mouse.release(Button.right)
+                rightMousePressed = ring_thumb_distance < 0.1
 
                 if thumb_middle_distance < 0.2 and not scrolling:
                     scrollingState = (thumb_x, thumb_y)
