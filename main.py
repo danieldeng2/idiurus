@@ -80,51 +80,48 @@ with mp_hands.Hands(model_complexity=0, min_detection_confidence=0.5, min_tracki
         image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
         if results.multi_hand_landmarks:
             for hand_landmarks in results.multi_hand_landmarks:
-                finger_tip = hand_landmarks.landmark[mp_hands.HandLandmark.INDEX_FINGER_TIP]
+                index_tip = hand_landmarks.landmark[mp_hands.HandLandmark.INDEX_FINGER_TIP]
                 thumb_tip = hand_landmarks.landmark[mp_hands.HandLandmark.THUMB_TIP]
                 middle_finger_tip = hand_landmarks.landmark[mp_hands.HandLandmark.MIDDLE_FINGER_TIP]
 
-                x = screen_x - (finger_tip.x + thumb_tip.x) / 2 * screen_x
-                y = (finger_tip.y + thumb_tip.y) / 2 * screen_y
-                thumb_x = screen_x - thumb_tip.x * screen_x
-                thumb_y = thumb_tip.y * screen_y
-                middle_x = screen_x - middle_finger_tip.x * screen_x
-                middle_y = middle_finger_tip.y * screen_y
+                index_x = 1 - index_tip.x
+                index_y = index_tip.y
 
-                distance_between_fingers = math.sqrt((x - thumb_x) ** 2 + (y - thumb_y) ** 2)
+                thumb_x = 1 - thumb_tip.x
+                thumb_y = thumb_tip.y
+
+                middle_x = 1 - middle_finger_tip.x
+                middle_y = middle_finger_tip.y
+
+                pointer_x = (index_x + thumb_x) / 2 * screen_x
+                pointer_y = (index_y + thumb_y) / 2 * screen_y
+
+                index_thumb_distance = math.sqrt((index_x - thumb_x) ** 2 + (index_y - thumb_y) ** 2)
                 thumb_middle_distance = math.sqrt((middle_x - thumb_x) ** 2 + (middle_y - thumb_y) ** 2)
 
-                if distance_between_fingers < 25:
+                if index_thumb_distance < 0.1:
                     if not mousePressed:
-                        mousePressed = True
                         mouse.press(Button.left)
                 else:
                     if mousePressed:
-                        mousePressed = False
                         mouse.release(Button.left)
+                
+                mousePressed = index_thumb_distance < 0.1
 
-
-                if thumb_middle_distance < 55:
+                if thumb_middle_distance < 0.3:
                     if not scrolling:
-                        scrolling = True
                         scrollingState = (thumb_x, thumb_y)
-                        print("Scrolling True")
-                else:
-                    if scrolling:
-                        scrolling = False
-                        print("Scrolling False")
 
+                scrolling = thumb_middle_distance < 0.3
                 if scrolling:
-                    if thumb_y - scrollingState[1] > 50:
+                    if thumb_y - scrollingState[1] > 0.2:
                         # scroll up
                         mouse.scroll(0, -1)
-                    elif scrollingState[1] - thumb_y > 50:
+                    elif scrollingState[1] - thumb_y > 0.2:
                         # scroll down
                         mouse.scroll(0, 1)
-
-                    mouse.position = scrollingState
                 else:
-                    mouse.position = (x, y)
+                    mouse.position = (pointer_x, pointer_y)
 
                 mp_drawing.draw_landmarks(
                     image,
