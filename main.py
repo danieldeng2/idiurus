@@ -8,6 +8,22 @@ from pynput.mouse import Button, Controller
 from screeninfo import get_monitors
 import pyautogui
 
+pointer_xs = []
+pointer_ys = []
+def weighted_input(inputs, input):
+    inputs.append(input)
+    if (len(inputs) > 15):
+        inputs.pop(0)
+
+    weights = 0
+    total = 0
+    for i, input in enumerate(inputs):
+        weight = 1 / (len(inputs) - i)
+        total += input * weight
+        weights += weight
+
+    return total / weights
+
 # Screen size calculation
 monitor = get_monitors()[0]
 screen_x = monitor.width
@@ -65,8 +81,6 @@ with mp_hands.Hands(static_image_mode=True, max_num_hands=2, min_detection_confi
 device_index = -1 if platform == "linux" else 0
 cap = cv2.VideoCapture(device_index)
 
-pointer_xs = []
-pointer_ys = []
 
 with mp_hands.Hands(model_complexity=0, min_detection_confidence=0.5, min_tracking_confidence=0.5) as hands:
     while cap.isOpened():
@@ -118,15 +132,8 @@ with mp_hands.Hands(model_complexity=0, min_detection_confidence=0.5, min_tracki
                 middle_y = middle_finger_tip.y
                 ring_y = 1 - ring_finger_tip.y
 
-                pointer_xs.append((index_x + thumb_x) / 2)
-                pointer_ys.append((index_y + thumb_y) / 2)
-
-                if len(pointer_xs) > 5:
-                    pointer_xs.pop(0)
-                    pointer_ys.pop(0)
-
-                pointer_x = average(pointer_xs)
-                pointer_y = average(pointer_ys)
+                pointer_x = weighted_input(pointer_xs, (index_x + thumb_x) / 2)
+                pointer_y = weighted_input(pointer_ys, (index_y + thumb_y) / 2)
                 
                 crop_ratio = 0.2
 
