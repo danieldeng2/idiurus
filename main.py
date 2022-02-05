@@ -146,11 +146,11 @@ with mp_hands.Hands(model_complexity=0, min_detection_confidence=0.5, min_tracki
                     mouse.release(Button.left)
                 leftMousePressed = index_thumb_distance < 0.1
 
-                if ring_thumb_distance < 0.1 and not rightMousePressed:
-                    mouse.press(Button.right)
-                if ring_thumb_distance > 0.1 and rightMousePressed:
-                    mouse.release(Button.right)
-                rightMousePressed = ring_thumb_distance < 0.1
+                # if ring_thumb_distance < 0.1 and not rightMousePressed:
+                #     mouse.press(Button.right)
+                # if ring_thumb_distance > 0.1 and rightMousePressed:
+                #     mouse.release(Button.right)
+                # rightMousePressed = ring_thumb_distance < 0.1
 
                 if thumb_middle_distance < 0.2 and not scrolling:
                     scrollingState = (thumb_x, thumb_y)
