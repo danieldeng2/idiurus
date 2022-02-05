@@ -1,7 +1,10 @@
 import cv2
 import mediapipe as mp
 import math
+import matplotlib.pyplot as plt
+
 from sys import platform
+from numpy import average
 from pynput.mouse import Button, Controller
 from screeninfo import get_monitors
 import pyautogui
@@ -63,6 +66,9 @@ with mp_hands.Hands(static_image_mode=True, max_num_hands=2, min_detection_confi
 device_index = -1 if platform == "linux" else 0
 cap = cv2.VideoCapture(device_index)
 
+pointer_xs = []
+pointer_ys = []
+
 with mp_hands.Hands(model_complexity=0, min_detection_confidence=0.5, min_tracking_confidence=0.5) as hands:
     while cap.isOpened():
         success, image = cap.read()
@@ -101,18 +107,26 @@ with mp_hands.Hands(model_complexity=0, min_detection_confidence=0.5, min_tracki
                 thumb_tip = hand_landmarks.landmark[mp_hands.HandLandmark.THUMB_TIP]
                 middle_finger_tip = hand_landmarks.landmark[mp_hands.HandLandmark.MIDDLE_FINGER_TIP]
 
+                
+                
                 index_x = 1 - index_tip.x
-                index_y = index_tip.y
-
                 thumb_x = 1 - thumb_tip.x
-                thumb_y = thumb_tip.y
-
                 middle_x = 1 - middle_finger_tip.x
+
+                index_y = index_tip.y
+                thumb_y = thumb_tip.y
                 middle_y = middle_finger_tip.y
 
-                pointer_x = (index_x + thumb_x) / 2 * screen_x
-                pointer_y = (index_y + thumb_y) / 2 * screen_y
+                pointer_xs.append((index_x + thumb_x) / 2 * screen_x)
+                pointer_ys.append((index_y + thumb_y) / 2 * screen_y)
 
+                if len(pointer_xs) > 5:
+                    pointer_xs.pop(0)
+                    pointer_ys.pop(0)
+
+                pointer_x = average(pointer_xs)
+                pointer_y = average(pointer_ys)
+                
                 index_thumb_distance = math.sqrt((index_x - thumb_x) ** 2 + (index_y - thumb_y) ** 2)
                 thumb_middle_distance = math.sqrt((middle_x - thumb_x) ** 2 + (middle_y - thumb_y) ** 2)
 
@@ -152,3 +166,4 @@ with mp_hands.Hands(model_complexity=0, min_detection_confidence=0.5, min_tracki
         if cv2.waitKey(5) & 0xFF == 27:
             break
 cap.release()
+plt.show()
