@@ -89,7 +89,6 @@ with mp_hands.Hands(
         thumb_y_coordinates = thumb_tip.y * 1872
 
 
-        mouse.position = (x_coordinates, y_coordinates)
         distance_between_fingers = math.sqrt((x_coordinates-thumb_x_coordinates)**2 + (y_coordinates-thumb_y_coordinates)**2)
         
         # print("DISTANCE BETWEEN FINGERS", distance_between_fingers)
@@ -103,6 +102,8 @@ with mp_hands.Hands(
                 mousePressed = False
                 mouse.release(Button.left)
                 print("MOUSE RELEASED")
+            mouse.position = (x_coordinates, y_coordinates)
+
 
         mp_drawing.draw_landmarks(
             image,
