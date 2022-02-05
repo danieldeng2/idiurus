@@ -115,10 +115,10 @@ with mp_hands.Hands(model_complexity=0, min_detection_confidence=0.5, min_tracki
                         print("Scrolling False")
 
                 if scrolling:
-                    if thumb_y - scrollingState[1] > 0:
+                    if thumb_y - scrollingState[1] > 50:
                         # scroll up
                         mouse.scroll(0, -1)
-                    else:
+                    elif scrollingState[1] - thumb_y > 50:
                         # scroll down
                         mouse.scroll(0, 1)
 
