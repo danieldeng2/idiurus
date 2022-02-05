@@ -118,8 +118,8 @@ with mp_hands.Hands(model_complexity=0, min_detection_confidence=0.5, min_tracki
                 middle_y = middle_finger_tip.y
                 ring_y = 1 - ring_finger_tip.y
 
-                pointer_xs.append((index_x + thumb_x) / 2 * screen_x)
-                pointer_ys.append((index_y + thumb_y) / 2 * screen_y)
+                pointer_xs.append((index_x + thumb_x) / 2)
+                pointer_ys.append((index_y + thumb_y) / 2)
 
                 if len(pointer_xs) > 5:
                     pointer_xs.pop(0)
@@ -128,6 +128,14 @@ with mp_hands.Hands(model_complexity=0, min_detection_confidence=0.5, min_tracki
                 pointer_x = average(pointer_xs)
                 pointer_y = average(pointer_ys)
                 
+                crop_ratio = 0.2
+
+                pointer_x = (pointer_x - crop_ratio) / (1 - 2 * crop_ratio)
+                pointer_y = (pointer_y - crop_ratio) / (1 - 2 * crop_ratio)
+
+                pointer_x = pointer_x * screen_x
+                pointer_y = pointer_y * screen_y
+
                 index_thumb_distance = math.sqrt((index_x - thumb_x) ** 2 + (index_y - thumb_y) ** 2)
                 thumb_middle_distance = math.sqrt((middle_x - thumb_x) ** 2 + (middle_y - thumb_y) ** 2)
                 ring_thumb_distance = math.sqrt((ring_x - thumb_x) ** 2 + (ring_y - thumb_y) ** 2)
