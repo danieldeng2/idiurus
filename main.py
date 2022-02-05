@@ -12,6 +12,9 @@ screen_y = monitor.height
 
 mouse = Controller()
 mousePressed = False
+scrolling = False
+scrollingState = (0,0)
+
 mp_drawing = mp.solutions.drawing_utils
 mp_drawing_styles = mp.solutions.drawing_styles
 mp_hands = mp.solutions.hands
@@ -79,13 +82,17 @@ with mp_hands.Hands(model_complexity=0, min_detection_confidence=0.5, min_tracki
             for hand_landmarks in results.multi_hand_landmarks:
                 finger_tip = hand_landmarks.landmark[mp_hands.HandLandmark.INDEX_FINGER_TIP]
                 thumb_tip = hand_landmarks.landmark[mp_hands.HandLandmark.THUMB_TIP]
+                middle_finger_tip = hand_landmarks.landmark[mp_hands.HandLandmark.MIDDLE_FINGER_TIP]
 
                 x = screen_x - (finger_tip.x + thumb_tip.x) / 2 * screen_x
                 y = (finger_tip.y + thumb_tip.y) / 2 * screen_y
                 thumb_x = screen_x - thumb_tip.x * screen_x
                 thumb_y = thumb_tip.y * screen_y
+                middle_x = screen_x - middle_finger_tip.x * screen_x
+                middle_y = middle_finger_tip.y * screen_y
 
                 distance_between_fingers = math.sqrt((x - thumb_x) ** 2 + (y - thumb_y) ** 2)
+                thumb_middle_distance = math.sqrt((middle_x - thumb_x) ** 2 + (middle_y - thumb_y) ** 2)
 
                 if distance_between_fingers < 25:
                     if not mousePressed:
@@ -96,7 +103,29 @@ with mp_hands.Hands(model_complexity=0, min_detection_confidence=0.5, min_tracki
                         mousePressed = False
                         mouse.release(Button.left)
 
-                mouse.position = (x, y)
+
+                if thumb_middle_distance < 55:
+                    if not scrolling:
+                        scrolling = True
+                        scrollingState = (thumb_x, thumb_y)
+                        print("Scrolling True")
+                else:
+                    if scrolling:
+                        scrolling = False
+                        print("Scrolling False")
+
+                if scrolling:
+                    if thumb_y - scrollingState[1] > 0:
+                        # scroll up
+                        mouse.scroll(0, -1)
+                    else:
+                        # scroll down
+                        mouse.scroll(0, 1)
+
+                    mouse.position = scrollingState
+                else:
+                    mouse.position = (x, y)
+
                 mp_drawing.draw_landmarks(
                     image,
                     hand_landmarks,
