@@ -92,15 +92,17 @@ with mp_hands.Hands(
         mouse.position = (x_coordinates, y_coordinates)
         distance_between_fingers = math.sqrt((x_coordinates-thumb_x_coordinates)**2 + (y_coordinates-thumb_y_coordinates)**2)
         
-        print("DISTANCE BETWEEN FINGERS", distance_between_fingers)
+        # print("DISTANCE BETWEEN FINGERS", distance_between_fingers)
         if distance_between_fingers < 100:
-            mousePressed=True
-            mouse.press(Button.left)
-            print("MOUSE CLICK DETECTED")
+            if not mousePressed:
+                mousePressed = True
+                mouse.press(Button.left)
+                print("MOUSE CLICK DETECTED")
         else:
-            mousePressed = False
-            mouse.release(Button.left)
-            print("MOUSE CLICK DETECTED")
+            if mousePressed:
+                mousePressed = False
+                mouse.release(Button.left)
+                print("MOUSE RELEASED")
 
         mp_drawing.draw_landmarks(
             image,
