@@ -147,19 +147,18 @@ with mp_hands.Hands(model_complexity=0, min_detection_confidence=0.5, min_tracki
                 ring_thumb_distance = math.sqrt((ring_x - thumb_x) ** 2 + (ring_y - thumb_y) ** 2)
 
                 if index_thumb_distance < 0.1:
-                    if currentState == Action.resting:
-                        mouse.press(Button.left)
-                        currentState = Action.leftclick
+                    mouse.press(Button.left)
+                    currentState = Action.leftclick
                 if index_thumb_distance > 0.1:
-                    if currentState == Action.leftclick:
+                    if currentState == currentState.leftclick:
                         mouse.release(Button.left)
                         currentState = Action.resting
 
                 # leftMousePressed = index_thumb_distance < 0.1
-
-                # if ring_thumb_distance < 0.1 and not rightMousePressed:
-                #     mouse.press(Button.right)
-                # if ring_thumb_distance > 0.1 and rightMousePressed:
+                # if ring_thumb_distance > 0.1 and rightMousePressed
+                #
+                #                 # if ring_thumb_distance < 0.1 and not rightMousePressed:
+                #                 #     mouse.press(Button.right):
                 #     mouse.release(Button.right)
                 # rightMousePressed = ring_thumb_distance < 0.1
 
@@ -168,12 +167,10 @@ with mp_hands.Hands(model_complexity=0, min_detection_confidence=0.5, min_tracki
                 # scrolling = thumb_middle_distance < 0.2
                 if thumb_middle_distance < 0.2:
                     if currentState == Action.resting:
-                        print("STARTED SCROLLING")
                         currentState = Action.scroll
                         scrollingState = (thumb_x, thumb_y)
                 else:
                     if currentState == Action.scroll:
-                        print("STOPPED SCROLLING")
                         currentState = Action.resting
 
                 if currentState == Action.scroll:
