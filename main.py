@@ -126,20 +126,25 @@ with mp_hands.Hands(model_complexity=0, min_detection_confidence=0.5, min_tracki
                 thumb_tip = hand_landmarks.landmark[mp_hands.HandLandmark.THUMB_TIP]
                 middle_finger_tip = hand_landmarks.landmark[mp_hands.HandLandmark.MIDDLE_FINGER_TIP]
                 ring_finger_tip = hand_landmarks.landmark[mp_hands.HandLandmark.RING_FINGER_TIP]
-                
+                pinky_tip = hand_landmarks.landmark[mp_hands.HandLandmark.PINKY_TIP]
+                index_finger_mcp = hand_landmarks.landmark[mp_hands.HandLandmark.INDEX_FINGER_MCP]
                 
                 index_x = 1 - index_tip.x
                 thumb_x = 1 - thumb_tip.x
                 middle_x = 1 - middle_finger_tip.x
                 ring_x = 1 - ring_finger_tip.x
+                mcp_x = 1 - index_finger_mcp.x
+                pinky_x = 1 - pinky_tip.x
 
                 index_y = index_tip.y
                 thumb_y = thumb_tip.y
                 middle_y = middle_finger_tip.y
-                ring_y = 1 - ring_finger_tip.y
+                mcp_y = index_finger_mcp.y
+                ring_y = ring_finger_tip.y
+                pinky_y = pinky_tip.y
 
-                pointer_x = weighted_input(pointer_xs, (index_x + thumb_x) / 2)
-                pointer_y = weighted_input(pointer_ys, (index_y + thumb_y) / 2)
+                pointer_x = weighted_input(pointer_xs, mcp_x)
+                pointer_y = weighted_input(pointer_ys, mcp_y)
                 
                 crop_ratio = 0.2
 
@@ -149,6 +154,7 @@ with mp_hands.Hands(model_complexity=0, min_detection_confidence=0.5, min_tracki
                 pointer_x = pointer_x * screen_x
                 pointer_y = pointer_y * screen_y
 
+                pinky_thumb_distance = math.sqrt((pinky_x - thumb_x)**2 + (pinky_y - thumb_y)**2)
                 index_thumb_distance = math.sqrt((index_x - thumb_x) ** 2 + (index_y - thumb_y) ** 2)
                 thumb_middle_distance = math.sqrt((middle_x - thumb_x) ** 2 + (middle_y - thumb_y) ** 2)
                 ring_thumb_distance = math.sqrt((ring_x - thumb_x) ** 2 + (ring_y - thumb_y) ** 2)
@@ -156,7 +162,7 @@ with mp_hands.Hands(model_complexity=0, min_detection_confidence=0.5, min_tracki
                 if index_thumb_distance < 0.1:
                     mouse.press(Button.left)
                     currentState = Action.leftclick
-                if index_thumb_distance > 0.1:
+                else:
                     if currentState == currentState.leftclick:
                         mouse.release(Button.left)
                         currentState = Action.resting
