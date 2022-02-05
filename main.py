@@ -4,6 +4,7 @@ import math
 from sys import platform
 from pynput.mouse import Button, Controller
 from screeninfo import get_monitors
+import pyautogui
 
 # Screen size calculation
 monitor = get_monitors()[0]
@@ -13,6 +14,7 @@ screen_y = monitor.height
 mouse = Controller()
 mousePressed = False
 scrolling = False
+taking_screenshot = False
 scrollingState = (0,0)
 
 mp_drawing = mp.solutions.drawing_utils
@@ -78,7 +80,22 @@ with mp_hands.Hands(model_complexity=0, min_detection_confidence=0.5, min_tracki
         # Draw the hand annotations on the image.
         image.flags.writeable = True
         image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+
         if results.multi_hand_landmarks:
+            # Uncomment to enable screenshot
+            # if len(results.multi_hand_landmarks) > 1:
+            #   first_hand_landmarks = results.multi_hand_landmarks[0]
+            #   second_hand_landmarks = results.multi_hand_landmarks[1]
+            #   first_finger_tip = first_hand_landmarks.landmark[mp_hands.HandLandmark.INDEX_FINGER_TIP]
+            #   second_finger_tip = second_hand_landmarks.landmark[mp_hands.HandLandmark.INDEX_FINGER_TIP]
+            #   two_index_distance = math.sqrt((first_finger_tip.x - second_finger_tip.x)**2 + (first_finger_tip.y - second_finger_tip.y)**2)
+            #   if two_index_distance < 0.05:
+            #     if not taking_screenshot:
+            #       taking_screenshot = True
+            #       myScreenshot = pyautogui.screenshot()
+            #       myScreenshot.save(r'screenshot.png')
+            #   else:
+            #     taking_screenshot = False
             for hand_landmarks in results.multi_hand_landmarks:
                 index_tip = hand_landmarks.landmark[mp_hands.HandLandmark.INDEX_FINGER_TIP]
                 thumb_tip = hand_landmarks.landmark[mp_hands.HandLandmark.THUMB_TIP]
