@@ -188,19 +188,25 @@ with mp_hands.Hands(model_complexity=0, min_detection_confidence=0.5, min_tracki
                     # else:
                     #     print("SLOW!")
 
+                if pinky_thumb_distance < 0.3:
+                    currentState = Action.scroll
+                    scrollingState = (mcp_x, mcp_y)
+                else:
+                    if currentState == Action.scroll:
+                        currentState = Action.resting
+
                 if index_thumb_distance < 0.1:
-                    clickState = (mcp_x, mcp_y)
-                    mouse.press(Button.left)
-                    currentState = Action.leftclick
+                    if currentState == Action.resting:
+                        clickState = (mcp_x, mcp_y)
+                        mouse.press(Button.left)
+                        currentState = Action.leftclick
                 else:
                     if currentState == currentState.leftclick:
                         mouse.release(Button.left)
                         currentState = Action.resting
 
                 if currentState == currentState.leftclick:
-                    print(distance(mcp_x, mcp_y, clickState[0], clickState[1]))
-                    if distance(mcp_x, mcp_y, clickState[0], clickState[1]) < 0.4:
-                        movePointer = pinky_thumb_distance < 0.2
+                    movePointer = thumb_middle_distance < 0.2
 
                 # leftMousePressed = index_thumb_distance < 0.1
                 # if ring_thumb_distance > 0.1 and rightMousePressed
@@ -213,13 +219,6 @@ with mp_hands.Hands(model_complexity=0, min_detection_confidence=0.5, min_tracki
                 # if thumb_middle_distance < 0.2 and not scrolling:
                 #     scrollingState = (thumb_x, thumb_y)
                 # scrolling = thumb_middle_distance < 0.2
-                if thumb_middle_distance < 0.2:
-                    if currentState == Action.resting:
-                        currentState = Action.scroll
-                        scrollingState = (mcp_x, mcp_y)
-                else:
-                    if currentState == Action.scroll:
-                        currentState = Action.resting
 
                 if currentState == Action.scroll:
                     # print("CURRENTLY SCROLLING")
