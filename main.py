@@ -169,7 +169,7 @@ with mp_hands.Hands(model_complexity=0, min_detection_confidence=0.5, min_tracki
                 index_thumb_distance = distance(index_x, thumb_x, index_y, thumb_y)
                 thumb_middle_distance = distance(middle_x, thumb_x, middle_y, thumb_y)
                 ring_thumb_distance = distance(ring_x, thumb_x, ring_y, thumb_y)
-                pinky_thumb_distance = distance(0, 0, pinky_y, thumb_y)
+                pinky_thumb_distance = distance(pinky_x, thumb_x, pinky_y, thumb_y)
 
                 movePointer = True
 
@@ -188,6 +188,7 @@ with mp_hands.Hands(model_complexity=0, min_detection_confidence=0.5, min_tracki
                     # else:
                     #     print("SLOW!")
 
+                # print(pinky_thumb_distance)
                 if pinky_thumb_distance < 0.1:
                     if currentState == Action.resting:
                         currentState = Action.scroll
@@ -211,11 +212,11 @@ with mp_hands.Hands(model_complexity=0, min_detection_confidence=0.5, min_tracki
 
                 if currentState == Action.scroll:
                     if thumb_y - scrollingState[1] > 0.1:
-                        # scroll up
-                        mouse.scroll(0, -1)
-                    elif scrollingState[1] - thumb_y > 0.1:
                         # scroll down
                         mouse.scroll(0, 1)
+                    elif scrollingState[1] - thumb_y > 0.1:
+                        # scroll up
+                        mouse.scroll(0, -1)
                     movePointer = False
                 
                 if movePointer:
