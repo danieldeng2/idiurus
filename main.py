@@ -21,7 +21,7 @@ last_media_change = datetime.now()
 
 def weighted_input(inputs, input):
     inputs.append(input)
-    if (len(inputs) > 15):
+    if (len(inputs) > 10):
         inputs.pop(0)
 
     weights = 0
@@ -169,7 +169,7 @@ with mp_hands.Hands(model_complexity=0, min_detection_confidence=0.5, min_tracki
                 index_thumb_distance = distance(index_x, thumb_x, index_y, thumb_y)
                 thumb_middle_distance = distance(middle_x, thumb_x, middle_y, thumb_y)
                 ring_thumb_distance = distance(ring_x, thumb_x, ring_y, thumb_y)
-                pinky_thumb_distance = distance(pinky_x, thumb_x, pinky_y, thumb_y)
+                pinky_thumb_distance = distance(0, 0, pinky_y, thumb_y)
 
                 movePointer = True
 
@@ -188,9 +188,10 @@ with mp_hands.Hands(model_complexity=0, min_detection_confidence=0.5, min_tracki
                     # else:
                     #     print("SLOW!")
 
-                if pinky_thumb_distance < 0.3:
-                    currentState = Action.scroll
-                    scrollingState = (mcp_x, mcp_y)
+                if pinky_thumb_distance < 0.1:
+                    if currentState == Action.resting:
+                        currentState = Action.scroll
+                        scrollingState = (mcp_x, mcp_y)
                 else:
                     if currentState == Action.scroll:
                         currentState = Action.resting
@@ -201,34 +202,18 @@ with mp_hands.Hands(model_complexity=0, min_detection_confidence=0.5, min_tracki
                         mouse.press(Button.left)
                         currentState = Action.leftclick
                 else:
-                    if currentState == currentState.leftclick:
+                    if currentState == Action.leftclick:
                         mouse.release(Button.left)
                         currentState = Action.resting
 
                 if currentState == currentState.leftclick:
                     movePointer = thumb_middle_distance < 0.2
 
-                # leftMousePressed = index_thumb_distance < 0.1
-                # if ring_thumb_distance > 0.1 and rightMousePressed
-                #
-                #                 # if ring_thumb_distance < 0.1 and not rightMousePressed:
-                #                 #     mouse.press(Button.right):
-                #     mouse.release(Button.right)
-                # rightMousePressed = ring_thumb_distance < 0.1
-
-                # if thumb_middle_distance < 0.2 and not scrolling:
-                #     scrollingState = (thumb_x, thumb_y)
-                # scrolling = thumb_middle_distance < 0.2
-
                 if currentState == Action.scroll:
-                    # print("CURRENTLY SCROLLING")
-                    # print(thumb_y)
-                    # print(scrollingState[1])
-                    # print("DISTANCE: ", thumb_y - scrollingState[1])
-                    if thumb_y - scrollingState[1] > 0.2:
+                    if thumb_y - scrollingState[1] > 0.1:
                         # scroll up
                         mouse.scroll(0, -1)
-                    elif scrollingState[1] - thumb_y > 0.2:
+                    elif scrollingState[1] - thumb_y > 0.1:
                         # scroll down
                         mouse.scroll(0, 1)
                     movePointer = False
