@@ -136,11 +136,11 @@ class VideoThread(QThread):
                         if (datetime.now() - last_media_change).total_seconds() > 2:
                             if previous_x != -1 and index_x - previous_x > 0.15 and last_media_change:
                                 print("*********RIGHT!")
-                                keyboard.press(Key.media_next)
+                                keyboard.tap(Key.media_next)
                                 last_media_change = datetime.now()
                             elif previous_x != -1 and index_x - previous_x < -0.15:
                                 print("*********LEFT!")
-                                keyboard.press(Key.media_previous)
+                                keyboard.tap(Key.media_previous)
                                 last_media_change = datetime.now()
                             # else:
                             #     print("SLOW!")
