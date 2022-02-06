@@ -5,11 +5,20 @@ import enum
 from sys import platform
 from numpy import average
 from pynput.mouse import Button, Controller
+from pynput.keyboard import Key
+from pynput.keyboard import Controller as KeyboardController
 from screeninfo import get_monitors
+from datetime import datetime
 import pyautogui
+
+keyboard = KeyboardController()
 
 pointer_xs = []
 pointer_ys = []
+
+index_x_history = [-1, -1, -1, -1, -1]
+last_media_change = datetime.now()
+
 def weighted_input(inputs, input):
     inputs.append(input)
     if (len(inputs) > 15):
@@ -128,7 +137,7 @@ with mp_hands.Hands(model_complexity=0, min_detection_confidence=0.5, min_tracki
                 ring_finger_tip = hand_landmarks.landmark[mp_hands.HandLandmark.RING_FINGER_TIP]
                 pinky_tip = hand_landmarks.landmark[mp_hands.HandLandmark.PINKY_TIP]
                 index_finger_mcp = hand_landmarks.landmark[mp_hands.HandLandmark.INDEX_FINGER_MCP]
-                
+
                 index_x = 1 - index_tip.x
                 thumb_x = 1 - thumb_tip.x
                 middle_x = 1 - middle_finger_tip.x
@@ -145,7 +154,7 @@ with mp_hands.Hands(model_complexity=0, min_detection_confidence=0.5, min_tracki
 
                 pointer_x = weighted_input(pointer_xs, mcp_x)
                 pointer_y = weighted_input(pointer_ys, mcp_y)
-                
+
                 crop_ratio = 0.2
 
                 pointer_x = (pointer_x - crop_ratio) / (1 - 2 * crop_ratio)
@@ -158,6 +167,21 @@ with mp_hands.Hands(model_complexity=0, min_detection_confidence=0.5, min_tracki
                 index_thumb_distance = math.sqrt((index_x - thumb_x) ** 2 + (index_y - thumb_y) ** 2)
                 thumb_middle_distance = math.sqrt((middle_x - thumb_x) ** 2 + (middle_y - thumb_y) ** 2)
                 ring_thumb_distance = math.sqrt((ring_x - thumb_x) ** 2 + (ring_y - thumb_y) ** 2)
+
+                # Record the previous index tip.
+                previous_x = index_x_history.pop(0)
+                index_x_history.append(index_x)
+                if (datetime.now() - last_media_change).total_seconds() > 2:
+                    if previous_x != -1 and index_x - previous_x > 0.15 and last_media_change:
+                        print("*********RIGHT!")
+                        keyboard.press(Key.media_next)
+                        last_media_change = datetime.now()
+                    elif previous_x != -1 and index_x - previous_x < -0.15:
+                        print("*********LEFT!")
+                        keyboard.press(Key.media_previous)
+                        last_media_change = datetime.now()
+                    # else:
+                    #     print("SLOW!")
 
                 if index_thumb_distance < 0.1:
                     mouse.press(Button.left)
@@ -187,10 +211,10 @@ with mp_hands.Hands(model_complexity=0, min_detection_confidence=0.5, min_tracki
                         currentState = Action.resting
 
                 if currentState == Action.scroll:
-                    print("CURRENTLY SCROLLING")
-                    print(thumb_y)
-                    print(scrollingState[1])
-                    print("DISTANCE: ", thumb_y - scrollingState[1])
+                    # print("CURRENTLY SCROLLING")
+                    # print(thumb_y)
+                    # print(scrollingState[1])
+                    # print("DISTANCE: ", thumb_y - scrollingState[1])
                     if thumb_y - scrollingState[1] > 0.2:
                         # scroll up
                         mouse.scroll(0, -1)
@@ -198,7 +222,7 @@ with mp_hands.Hands(model_complexity=0, min_detection_confidence=0.5, min_tracki
                         # scroll down
                         mouse.scroll(0, 1)
                 else:
-                    print("CURRENTLY NOT SCROLLING")
+                    # print("CURRENTLY NOT SCROLLING")
                     mouse.position = (pointer_x, pointer_y)
 
                 mp_drawing.draw_landmarks(
