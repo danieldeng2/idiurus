@@ -169,6 +169,7 @@ with mp_hands.Hands(model_complexity=0, min_detection_confidence=0.5, min_tracki
                 index_thumb_distance = distance(index_x, thumb_x, index_y, thumb_y)
                 thumb_middle_distance = distance(middle_x, thumb_x, middle_y, thumb_y)
                 ring_thumb_distance = distance(ring_x, thumb_x, ring_y, thumb_y)
+                pinky_thumb_distance = distance(pinky_x, thumb_x, pinky_y, thumb_y)
 
                 movePointer = True
 
@@ -196,10 +197,10 @@ with mp_hands.Hands(model_complexity=0, min_detection_confidence=0.5, min_tracki
                         mouse.release(Button.left)
                         currentState = Action.resting
 
-                # if currentState == currentState.leftclick:
-                    # print(distance(mcp_x, mcp_y, clickState[0], clickState[1]))
-                    # if distance(mcp_x, mcp_y, clickState[0], clickState[1]) < 0.05:
-                    #     movePointer = False
+                if currentState == currentState.leftclick:
+                    print(distance(mcp_x, mcp_y, clickState[0], clickState[1]))
+                    if distance(mcp_x, mcp_y, clickState[0], clickState[1]) < 0.4:
+                        movePointer = pinky_thumb_distance < 0.2
 
                 # leftMousePressed = index_thumb_distance < 0.1
                 # if ring_thumb_distance > 0.1 and rightMousePressed
