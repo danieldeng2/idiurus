@@ -33,6 +33,9 @@ def weighted_input(inputs, input):
 
     return total / weights
 
+def distance(x1, x2, y1, y2):
+    return math.sqrt((x2 - x1)**2 + (y2 - y1)**2)
+
 class Action(enum.Enum):
     resting = 1
     leftclick = 2
@@ -163,10 +166,11 @@ with mp_hands.Hands(model_complexity=0, min_detection_confidence=0.5, min_tracki
                 pointer_x = pointer_x * screen_x
                 pointer_y = pointer_y * screen_y
 
-                pinky_thumb_distance = math.sqrt((pinky_x - thumb_x)**2 + (pinky_y - thumb_y)**2)
-                index_thumb_distance = math.sqrt((index_x - thumb_x) ** 2 + (index_y - thumb_y) ** 2)
-                thumb_middle_distance = math.sqrt((middle_x - thumb_x) ** 2 + (middle_y - thumb_y) ** 2)
-                ring_thumb_distance = math.sqrt((ring_x - thumb_x) ** 2 + (ring_y - thumb_y) ** 2)
+                index_thumb_distance = distance(index_x, thumb_x, index_y, thumb_y)
+                thumb_middle_distance = distance(middle_x, thumb_x, middle_y, thumb_y)
+                ring_thumb_distance = distance(ring_x, thumb_x, ring_y, thumb_y)
+
+                movePointer = True
 
                 # Record the previous index tip.
                 previous_x = index_x_history.pop(0)
@@ -184,12 +188,18 @@ with mp_hands.Hands(model_complexity=0, min_detection_confidence=0.5, min_tracki
                     #     print("SLOW!")
 
                 if index_thumb_distance < 0.1:
+                    clickState = (mcp_x, mcp_y)
                     mouse.press(Button.left)
                     currentState = Action.leftclick
                 else:
                     if currentState == currentState.leftclick:
                         mouse.release(Button.left)
                         currentState = Action.resting
+
+                # if currentState == currentState.leftclick:
+                    # print(distance(mcp_x, mcp_y, clickState[0], clickState[1]))
+                    # if distance(mcp_x, mcp_y, clickState[0], clickState[1]) < 0.05:
+                    #     movePointer = False
 
                 # leftMousePressed = index_thumb_distance < 0.1
                 # if ring_thumb_distance > 0.1 and rightMousePressed
@@ -205,7 +215,7 @@ with mp_hands.Hands(model_complexity=0, min_detection_confidence=0.5, min_tracki
                 if thumb_middle_distance < 0.2:
                     if currentState == Action.resting:
                         currentState = Action.scroll
-                        scrollingState = (thumb_x, thumb_y)
+                        scrollingState = (mcp_x, mcp_y)
                 else:
                     if currentState == Action.scroll:
                         currentState = Action.resting
@@ -221,8 +231,9 @@ with mp_hands.Hands(model_complexity=0, min_detection_confidence=0.5, min_tracki
                     elif scrollingState[1] - thumb_y > 0.2:
                         # scroll down
                         mouse.scroll(0, 1)
-                else:
-                    # print("CURRENTLY NOT SCROLLING")
+                    movePointer = False
+                
+                if movePointer:
                     mouse.position = (pointer_x, pointer_y)
 
                 mp_drawing.draw_landmarks(
