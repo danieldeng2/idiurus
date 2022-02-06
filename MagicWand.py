@@ -90,94 +90,94 @@ class VideoThread(QThread):
                 image.flags.writeable = True
                 image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
                 if results.multi_hand_landmarks:
-                    for hand_landmarks in results.multi_hand_landmarks:
-                        index_tip = hand_landmarks.landmark[mp_hands.HandLandmark.INDEX_FINGER_TIP]
-                        thumb_tip = hand_landmarks.landmark[mp_hands.HandLandmark.THUMB_TIP]
-                        middle_finger_tip = hand_landmarks.landmark[mp_hands.HandLandmark.MIDDLE_FINGER_TIP]
-                        ring_finger_tip = hand_landmarks.landmark[mp_hands.HandLandmark.RING_FINGER_TIP]
-                        pinky_tip = hand_landmarks.landmark[mp_hands.HandLandmark.PINKY_TIP]
-                        index_finger_mcp = hand_landmarks.landmark[mp_hands.HandLandmark.INDEX_FINGER_MCP]
+                    hand_landmarks = results.multi_hand_landmarks[-1]
+                    index_tip = hand_landmarks.landmark[mp_hands.HandLandmark.INDEX_FINGER_TIP]
+                    thumb_tip = hand_landmarks.landmark[mp_hands.HandLandmark.THUMB_TIP]
+                    middle_finger_tip = hand_landmarks.landmark[mp_hands.HandLandmark.MIDDLE_FINGER_TIP]
+                    ring_finger_tip = hand_landmarks.landmark[mp_hands.HandLandmark.RING_FINGER_TIP]
+                    pinky_tip = hand_landmarks.landmark[mp_hands.HandLandmark.PINKY_TIP]
+                    index_finger_mcp = hand_landmarks.landmark[mp_hands.HandLandmark.INDEX_FINGER_MCP]
 
-                        index_x = 1 - index_tip.x
-                        thumb_x = 1 - thumb_tip.x
-                        middle_x = 1 - middle_finger_tip.x
-                        ring_x = 1 - ring_finger_tip.x
-                        mcp_x = 1 - index_finger_mcp.x
-                        pinky_x = 1 - pinky_tip.x
+                    index_x = 1 - index_tip.x
+                    thumb_x = 1 - thumb_tip.x
+                    middle_x = 1 - middle_finger_tip.x
+                    ring_x = 1 - ring_finger_tip.x
+                    mcp_x = 1 - index_finger_mcp.x
+                    pinky_x = 1 - pinky_tip.x
 
-                        index_y = index_tip.y
-                        thumb_y = thumb_tip.y
-                        middle_y = middle_finger_tip.y
-                        mcp_y = index_finger_mcp.y
-                        ring_y = ring_finger_tip.y
-                        pinky_y = pinky_tip.y
+                    index_y = index_tip.y
+                    thumb_y = thumb_tip.y
+                    middle_y = middle_finger_tip.y
+                    mcp_y = index_finger_mcp.y
+                    ring_y = ring_finger_tip.y
+                    pinky_y = pinky_tip.y
 
-                        pointer_x = weighted_input(pointer_xs, mcp_x)
-                        pointer_y = weighted_input(pointer_ys, mcp_y)
+                    pointer_x = weighted_input(pointer_xs, mcp_x)
+                    pointer_y = weighted_input(pointer_ys, mcp_y)
 
-                        crop_ratio = 0.2
+                    crop_ratio = 0.2
 
-                        pointer_x = (pointer_x - crop_ratio) / (1 - 2 * crop_ratio)
-                        pointer_y = (pointer_y - crop_ratio) / (1 - 2 * crop_ratio)
+                    pointer_x = (pointer_x - crop_ratio) / (1 - 2 * crop_ratio)
+                    pointer_y = (pointer_y - crop_ratio) / (1 - 2 * crop_ratio)
 
-                        pointer_x = pointer_x * screen_x
-                        pointer_y = pointer_y * screen_y
+                    pointer_x = pointer_x * screen_x
+                    pointer_y = pointer_y * screen_y
 
-                        index_thumb_distance = distance(index_x, thumb_x, index_y, thumb_y)
-                        thumb_middle_distance = distance(middle_x, thumb_x, middle_y, thumb_y)
-                        ring_thumb_distance = distance(ring_x, thumb_x, ring_y, thumb_y)
-                        pinky_thumb_distance = distance(pinky_x, thumb_x, pinky_y, thumb_y)
+                    index_thumb_distance = distance(index_x, thumb_x, index_y, thumb_y)
+                    thumb_middle_distance = distance(middle_x, thumb_x, middle_y, thumb_y)
+                    ring_thumb_distance = distance(ring_x, thumb_x, ring_y, thumb_y)
+                    pinky_thumb_distance = distance(pinky_x, thumb_x, pinky_y, thumb_y)
 
-                        movePointer = True
+                    movePointer = True
 
-                        # Record the previous index tip.
-                        previous_x = index_x_history.pop(0)
-                        index_x_history.append(index_x)
-                        if (datetime.now() - last_media_change).total_seconds() > 2:
-                            if previous_x != -1 and index_x - previous_x > 0.15 and last_media_change:
-                                print("*********RIGHT!")
-                                keyboard.tap(Key.media_next)
-                                last_media_change = datetime.now()
-                            elif previous_x != -1 and index_x - previous_x < -0.15:
-                                print("*********LEFT!")
-                                keyboard.tap(Key.media_previous)
-                                last_media_change = datetime.now()
-                            # else:
-                            #     print("SLOW!")
+                    # Record the previous index tip.
+                    previous_x = index_x_history.pop(0)
+                    index_x_history.append(index_x)
+                    if (datetime.now() - last_media_change).total_seconds() > 2:
+                        if previous_x != -1 and index_x - previous_x > 0.15 and last_media_change:
+                            print("*********RIGHT!")
+                            keyboard.press(Key.media_next)
+                            last_media_change = datetime.now()
+                        elif previous_x != -1 and index_x - previous_x < -0.15:
+                            print("*********LEFT!")
+                            keyboard.press(Key.media_previous)
+                            last_media_change = datetime.now()
+                        # else:
+                        #     print("SLOW!")
 
-                        # print(pinky_thumb_distance)
-                        if pinky_thumb_distance < 0.1:
-                            if currentState == Action.resting:
-                                currentState = Action.scroll
-                                scrollingState = (mcp_x, mcp_y)
-                        else:
-                            if currentState == Action.scroll:
-                                currentState = Action.resting
-
-                        if index_thumb_distance < 0.1:
-                            if currentState == Action.resting:
-                                clickState = (mcp_x, mcp_y)
-                                mouse.press(Button.left)
-                                currentState = Action.leftclick
-                        else:
-                            if currentState == Action.leftclick:
-                                mouse.release(Button.left)
-                                currentState = Action.resting
-
-                        if currentState == currentState.leftclick:
-                            movePointer = thumb_middle_distance < 0.2
-
+                    # print(pinky_thumb_distance)
+                    if pinky_thumb_distance < 0.1:
+                        if currentState == Action.resting:
+                            currentState = Action.scroll
+                            scrollingState = (mcp_x, mcp_y)
+                    else:
                         if currentState == Action.scroll:
-                            if thumb_y - scrollingState[1] > 0.1:
-                                # scroll down
-                                mouse.scroll(0, 1)
-                            elif scrollingState[1] - thumb_y > 0.1:
-                                # scroll up
-                                mouse.scroll(0, -1)
-                            movePointer = False
-                        
-                        if movePointer:
-                            mouse.position = (pointer_x, pointer_y)
+                            currentState = Action.resting
+
+                    if index_thumb_distance < 0.1:
+                        if currentState == Action.resting:
+                            clickState = (mcp_x, mcp_y)
+                            mouse.press(Button.left)
+                            currentState = Action.leftclick
+                    else:
+                        if currentState == Action.leftclick:
+                            mouse.release(Button.left)
+                            currentState = Action.resting
+
+                    if currentState == currentState.leftclick:
+                        movePointer = thumb_middle_distance < 0.2
+
+                    if currentState == Action.scroll:
+                        if thumb_y - scrollingState[1] > 0.1:
+                            # scroll down
+                            mouse.scroll(0, 1)
+                        elif scrollingState[1] - thumb_y > 0.1:
+                            # scroll up
+                            mouse.scroll(0, -1)
+                        movePointer = False
+                    
+                    if movePointer:
+                        mouse.position = (pointer_x, pointer_y)
 
                         # mp_drawing.draw_landmarks(
                         #     image,
