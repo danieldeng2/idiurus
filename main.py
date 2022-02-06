@@ -1,12 +1,37 @@
 import cv2
 import mediapipe as mp
 import math
-
+import enum
 from sys import platform
 from numpy import average
 from pynput.mouse import Button, Controller
 from screeninfo import get_monitors
 import pyautogui
+
+pointer_xs = []
+pointer_ys = []
+def weighted_input(inputs, input):
+    inputs.append(input)
+    if (len(inputs) > 15):
+        inputs.pop(0)
+
+    weights = 0
+    total = 0
+    for i, input in enumerate(inputs):
+        weight = 1 / (len(inputs) - i)
+        total += input * weight
+        weights += weight
+
+    return total / weights
+
+def distance(x1, x2, y1, y2):
+    return math.sqrt((x2 - x1)**2 + (y2 - y1)**2)
+
+class Action(enum.Enum):
+    resting = 1
+    leftclick = 2
+    scroll = 3
+currentState = Action.resting
 
 # Screen size calculation
 monitor = get_monitors()[0]
@@ -65,8 +90,6 @@ with mp_hands.Hands(static_image_mode=True, max_num_hands=2, min_detection_confi
 device_index = -1 if platform == "linux" else 0
 cap = cv2.VideoCapture(device_index)
 
-pointer_xs = []
-pointer_ys = []
 
 with mp_hands.Hands(model_complexity=0, min_detection_confidence=0.5, min_tracking_confidence=0.5) as hands:
     while cap.isOpened():
@@ -106,27 +129,25 @@ with mp_hands.Hands(model_complexity=0, min_detection_confidence=0.5, min_tracki
                 thumb_tip = hand_landmarks.landmark[mp_hands.HandLandmark.THUMB_TIP]
                 middle_finger_tip = hand_landmarks.landmark[mp_hands.HandLandmark.MIDDLE_FINGER_TIP]
                 ring_finger_tip = hand_landmarks.landmark[mp_hands.HandLandmark.RING_FINGER_TIP]
-                
+                pinky_tip = hand_landmarks.landmark[mp_hands.HandLandmark.PINKY_TIP]
+                index_finger_mcp = hand_landmarks.landmark[mp_hands.HandLandmark.INDEX_FINGER_MCP]
                 
                 index_x = 1 - index_tip.x
                 thumb_x = 1 - thumb_tip.x
                 middle_x = 1 - middle_finger_tip.x
                 ring_x = 1 - ring_finger_tip.x
+                mcp_x = 1 - index_finger_mcp.x
+                pinky_x = 1 - pinky_tip.x
 
                 index_y = index_tip.y
                 thumb_y = thumb_tip.y
                 middle_y = middle_finger_tip.y
-                ring_y = 1 - ring_finger_tip.y
+                mcp_y = index_finger_mcp.y
+                ring_y = ring_finger_tip.y
+                pinky_y = pinky_tip.y
 
-                pointer_xs.append((index_x + thumb_x) / 2)
-                pointer_ys.append((index_y + thumb_y) / 2)
-
-                if len(pointer_xs) > 5:
-                    pointer_xs.pop(0)
-                    pointer_ys.pop(0)
-
-                pointer_x = average(pointer_xs)
-                pointer_y = average(pointer_ys)
+                pointer_x = weighted_input(pointer_xs, mcp_x)
+                pointer_y = weighted_input(pointer_ys, mcp_y)
                 
                 crop_ratio = 0.2
 
@@ -136,35 +157,61 @@ with mp_hands.Hands(model_complexity=0, min_detection_confidence=0.5, min_tracki
                 pointer_x = pointer_x * screen_x
                 pointer_y = pointer_y * screen_y
 
-                index_thumb_distance = math.sqrt((index_x - thumb_x) ** 2 + (index_y - thumb_y) ** 2)
-                thumb_middle_distance = math.sqrt((middle_x - thumb_x) ** 2 + (middle_y - thumb_y) ** 2)
-                ring_thumb_distance = math.sqrt((ring_x - thumb_x) ** 2 + (ring_y - thumb_y) ** 2)
+                index_thumb_distance = distance(index_x, thumb_x, index_y, thumb_y)
+                thumb_middle_distance = distance(middle_x, thumb_x, middle_y, thumb_y)
+                ring_thumb_distance = distance(ring_x, thumb_x, ring_y, thumb_y)
 
-                if index_thumb_distance < 0.1 and not leftMousePressed:
+                movePointer = True
+
+                if index_thumb_distance < 0.1:
+                    clickState = (mcp_x, mcp_y)
                     mouse.press(Button.left)
-                if index_thumb_distance > 0.1 and leftMousePressed:
-                    mouse.release(Button.left)
-                leftMousePressed = index_thumb_distance < 0.1
+                    currentState = Action.leftclick
+                else:
+                    if currentState == currentState.leftclick:
+                        mouse.release(Button.left)
+                        currentState = Action.resting
 
-                if ring_thumb_distance < 0.1 and not rightMousePressed:
-                    mouse.press(Button.right)
-                if ring_thumb_distance > 0.1 and rightMousePressed:
-                    mouse.release(Button.right)
-                rightMousePressed = ring_thumb_distance < 0.1
+                # if currentState == currentState.leftclick:
+                    # print(distance(mcp_x, mcp_y, clickState[0], clickState[1]))
+                    # if distance(mcp_x, mcp_y, clickState[0], clickState[1]) < 0.05:
+                    #     movePointer = False
 
-                if thumb_middle_distance < 0.2 and not scrolling:
-                    scrollingState = (thumb_x, thumb_y)
-                scrolling = thumb_middle_distance < 0.2
+                # leftMousePressed = index_thumb_distance < 0.1
+                # if ring_thumb_distance > 0.1 and rightMousePressed
+                #
+                #                 # if ring_thumb_distance < 0.1 and not rightMousePressed:
+                #                 #     mouse.press(Button.right):
+                #     mouse.release(Button.right)
+                # rightMousePressed = ring_thumb_distance < 0.1
 
-                if scrolling:
+                # if thumb_middle_distance < 0.2 and not scrolling:
+                #     scrollingState = (thumb_x, thumb_y)
+                # scrolling = thumb_middle_distance < 0.2
+                if thumb_middle_distance < 0.2:
+                    if currentState == Action.resting:
+                        currentState = Action.scroll
+                        scrollingState = (mcp_x, mcp_y)
+                else:
+                    if currentState == Action.scroll:
+                        currentState = Action.resting
+
+                if currentState == Action.scroll:
+                    print("CURRENTLY SCROLLING")
+                    print(thumb_y)
+                    print(scrollingState[1])
+                    print("DISTANCE: ", thumb_y - scrollingState[1])
                     if thumb_y - scrollingState[1] > 0.2:
                         # scroll up
                         mouse.scroll(0, -1)
                     elif scrollingState[1] - thumb_y > 0.2:
                         # scroll down
                         mouse.scroll(0, 1)
-                else:
+                    movePointer = False
+                
+                if movePointer:
                     mouse.position = (pointer_x, pointer_y)
+
                 mp_drawing.draw_landmarks(
                     image,
                     hand_landmarks,
