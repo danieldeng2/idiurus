@@ -72,7 +72,7 @@ class VideoThread(QThread):
         screen_y = monitor.height
         currentState = Action.resting
         last_media_change = datetime.now()
-        
+
         cap = cv2.VideoCapture(DEVICE_INDEX)
 
         with mp_hands.Hands(model_complexity=0, min_detection_confidence=0.5, min_tracking_confidence=0.5) as hands:
@@ -179,13 +179,13 @@ class VideoThread(QThread):
                         if movePointer:
                             mouse.position = (pointer_x, pointer_y)
 
-                        mp_drawing.draw_landmarks(
-                            image,
-                            hand_landmarks,
-                            mp_hands.HAND_CONNECTIONS,
-                            mp_drawing_styles.get_default_hand_landmarks_style(),
-                            mp_drawing_styles.get_default_hand_connections_style(),
-                        )
+                        # mp_drawing.draw_landmarks(
+                        #     image,
+                        #     hand_landmarks,
+                        #     mp_hands.HAND_CONNECTIONS,
+                        #     mp_drawing_styles.get_default_hand_landmarks_style(),
+                        #     mp_drawing_styles.get_default_hand_connections_style(),
+                        # )
                 self.change_pixmap_signal.emit(cv2.flip(image, 1))
 
         # Shut down capture system
