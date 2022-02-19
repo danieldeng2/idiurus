@@ -1,5 +1,7 @@
 ## Magic Wand
 
+***See the demo video here:*** https://www.youtube.com/watch?v=L6RWHaveG0M
+
 ### Inspiration
 
 The inspiration comes from Meta Workplace blackboard functionality, as well as the fact that some people need to draw their illustrations during interviews or technical meetings, such as drawing a binary tree structure or a mathematical equation. Or maybe someone who is cooking needs to operate computers or tablets to search for recipes. However, mouse or trackpad are not natural as a drawing tool to humans, and not everyone has a tablet or paper and pen to draw on. Thus, we have thought of creating a new way so that people can draw and navigate their cursor in a natural way with great precision.
