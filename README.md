@@ -21,4 +21,5 @@ We built the Magic Wand based on the open-source library MediaPipe, which does a
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
+pip install PySide6
 ```
